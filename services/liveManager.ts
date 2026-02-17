@@ -1,3 +1,4 @@
+import { createPCMBlob } from "@/lib/audioUtils";
 import {
   INPUT_SAMPLE_RATE,
   MODEL,
@@ -80,10 +81,13 @@ export class LiveManager {
     );
 
     this.workletNode.port.onmessage = (event) => {
-      console.log(
-        "RECEIVED MESSAGE FROM AUDIO THREAD",
-        event.data,
+      const pcmBlob = createPCMBlob(
+        event.data as Float32Array,
       );
+
+      this.activeSession?.sendRealtimeInput({
+        audio: pcmBlob,
+      });
     };
 
     this.mediaStream =

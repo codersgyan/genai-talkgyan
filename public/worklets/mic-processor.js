@@ -1,4 +1,6 @@
 class MicProcessor extends AudioWorkletProcessor {
+
+  // sampleRate/RenderQuantumSize  = 16000/128 = 125 times / second - 8ms
   process(inputs) {
     if (!inputs.length) return true;
 
