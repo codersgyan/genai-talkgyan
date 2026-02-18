@@ -133,6 +133,10 @@ export class LiveManager {
   async handleMessage(message: LiveServerMessage) {
     const serverContent = message.serverContent;
 
+    if (serverContent?.interrupted) {
+      this.stopAllAudio();
+    }
+
     const base64Data =
       serverContent?.modelTurn?.parts?.[0].inlineData?.data;
 
@@ -156,6 +160,14 @@ export class LiveManager {
       1,
     );
 
+    if (
+      this.nextStartTime <
+      this.outputAudioContext.currentTime
+    ) {
+      this.nextStartTime =
+        this.outputAudioContext.currentTime;
+    }
+
     const source =
       this.outputAudioContext.createBufferSource();
 
@@ -172,5 +184,20 @@ export class LiveManager {
     });
 
     this.sources.add(source);
+  }
+
+  async stopAllAudio() {
+    this.sources.forEach((source) => {
+      try {
+        source.stop();
+      } catch {}
+    });
+
+    this.sources.clear();
+
+    if (this.outputAudioContext) {
+      this.nextStartTime =
+        this.outputAudioContext?.currentTime;
+    }
   }
 }
