@@ -32,6 +32,7 @@ export class LiveManager {
   private nextStartTime = 0;
   private sources = new Set<AudioBufferSourceNode>();
   private callbacks: LiveManagerCallbacks;
+  private isMuted: boolean;
 
   constructor(callbacks: LiveManagerCallbacks) {
     this.ai = new GoogleGenAI({
@@ -212,6 +213,16 @@ export class LiveManager {
     if (this.outputAudioContext) {
       this.nextStartTime =
         this.outputAudioContext?.currentTime;
+    }
+  }
+
+  setMute(isMuted: boolean) {
+    this.isMuted = isMuted;
+
+    if (this.mediaStream) {
+      this.mediaStream.getAudioTracks().forEach((track) => {
+        track.enabled = !isMuted;
+      });
     }
   }
 }

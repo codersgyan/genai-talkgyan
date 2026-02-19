@@ -7,11 +7,14 @@ import { LiveWaveform } from "./ui/live-waveform";
 function VisualizationPanel() {
   const isConnected = true;
   const isConnecting = false;
+  // todo: make this dynamic
   const agentState = "talking";
 
   // Logic to pulsate the logo based on output volume
   // Base scale is 1. We add a fraction of the audio level.
   // We clamp the level to avoid massive explosions of the logo if audio peaks.
+
+  // todo: make this dynamic
   const activeScale = 1;
   const logoScale =
     isConnected && agentState === "talking"
