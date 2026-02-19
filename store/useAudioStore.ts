@@ -10,6 +10,7 @@ type AudioStore = {
   liveManagerInstance: LiveManager;
   transcript: TranscriptItem[];
   connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
   toggleMute: () => void;
 };
 
@@ -97,6 +98,18 @@ export const useAudioStore = create<AudioStore>()(
 
       // create session
       manager.startSession();
+    },
+    disconnect: async () => {
+      const state = get();
+      if (state.liveManagerInstance) {
+        state.liveManagerInstance.disconnect();
+
+        set({ liveManagerInstance: undefined });
+
+        set({
+          conectionState: ConnectionState.DISCONNECTED,
+        });
+      }
     },
   })),
 );
