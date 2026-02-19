@@ -40,7 +40,13 @@ export const useAudioStore = create<AudioStore>()(
       // create live manager (singleton)
       let manager = state.liveManagerInstance;
       if (!manager) {
-        manager = new LiveManager();
+        // @ts-ignore
+        manager = new LiveManager({
+          onStateChange: (state) =>
+            set({ conectionState: state }),
+          onError: (err) => set({ error: err }),
+        });
+
         set({ liveManagerInstance: manager });
       }
 

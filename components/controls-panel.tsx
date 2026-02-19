@@ -15,14 +15,17 @@ import { MicSelector } from "@/components/ui/mic-selector";
 import { useAudioStore } from "@/store/useAudioStore";
 
 function ControlsPanel() {
-  const { connect } = useAudioStore();
+  const { connect, conectionState } = useAudioStore();
 
   const [selectedDevice, setSelectedDevice] =
     useState<string>("");
 
-  const isConnected = false;
-  const isConnecting = false;
-  const isMuted = false;
+  const isConnected =
+    conectionState === ConnectionState.CONNECTED;
+  const isConnecting =
+    conectionState === ConnectionState.CONNECTING;
+
+    const isMuted = false;
 
   return (
     <div className="w-full max-w-[90vw] sm:max-w-fit mx-auto transition-all duration-300 ease-in-out">
