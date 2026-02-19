@@ -34,6 +34,9 @@ export class LiveManager {
   private callbacks: LiveManagerCallbacks;
   private isMuted: boolean;
 
+  private inputTranscription = "";
+  private outputTranscription = "";
+
   constructor(callbacks: LiveManagerCallbacks) {
     this.ai = new GoogleGenAI({
       // IMPORTANT: don't use this in production... (will use ephemeral tokens)
@@ -56,6 +59,8 @@ export class LiveManager {
         responseModalities: [Modality.AUDIO],
         systemInstruction:
           "You are a helpful and friendly AI assistant.",
+        inputAudioTranscription: {},
+        outputAudioTranscription: {},
       };
 
       this.activeSession = await this.ai.live.connect({
@@ -151,14 +156,55 @@ export class LiveManager {
       this.stopAllAudio();
     }
 
+    if (serverContent?.inputTranscription?.text) {
+      this.inputTranscription +=
+        serverContent?.inputTranscription?.text;
+
+      this.callbacks.onTranscript(
+        "user",
+        this.inputTranscription,
+        true,
+      );
+    }
+
+    if (serverContent?.outputTranscription?.text) {
+      this.outputTranscription +=
+        serverContent?.outputTranscription?.text;
+
+      this.callbacks.onTranscript(
+        "model",
+        this.outputTranscription,
+        true,
+      );
+    }
+
+    if (serverContent?.turnComplete) {
+      if (this.inputTranscription) {
+        this.callbacks.onTranscript(
+          "user",
+          this.inputTranscription,
+          false,
+        );
+
+        this.inputTranscription = "";
+      }
+
+      if (this.outputTranscription) {
+        this.callbacks.onTranscript(
+          "model",
+          this.outputTranscription,
+          false,
+        );
+        this.outputTranscription = "";
+      }
+    }
+
     const base64Data =
       serverContent?.modelTurn?.parts?.[0].inlineData?.data;
 
     if (!base64Data) return;
 
     await this.playAudioChunk(base64Data as string);
-
-    console.log("output context", this.outputAudioContext);
   }
 
   async playAudioChunk(audioData: string) {

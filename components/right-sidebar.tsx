@@ -13,24 +13,30 @@ import {
 
 import { cleanText } from "@/lib/utils";
 import SidebarHeader from "./sidebar-header";
+import { useAudioStore } from "@/store/useAudioStore";
 
 function RightSidebar() {
-  const items: any[] = [
-    {
-      text: "Hii",
-      isPartial: false,
-      sender: "user",
-    },
-    {
-      text: "I'm TalkGyan AI Assistant",
-      isPartial: false,
-      sender: "assistant",
-    },
-  ];
+  const { transcript: items } = useAudioStore();
+
+  // const items: any[] = [
+  //   {
+  //     text: "Hii",
+  //     isPartial: false,
+  //     sender: "user",
+  //   },
+  //   {
+  //     text: "I'm TalkGyan AI Assistant",
+  //     isPartial: false,
+  //     sender: "assistant",
+  //   },
+  // ];
   return (
     <aside className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground">
       {/* Header */}
-      <SidebarHeader icon={LucideLanguages} title="Transcript" />
+      <SidebarHeader
+        icon={LucideLanguages}
+        title="Transcript"
+      />
 
       {/* Content */}
       <div className="relative flex-1 overflow-hidden">
@@ -48,13 +54,13 @@ function RightSidebar() {
             ) : (
               items.map((message, i) => {
                 const cleanedText = cleanText(message.text);
-                if (!cleanedText && !message.isPartial) return null;
+                if (!cleanedText && !message.isPartial)
+                  return null;
                 const isUser = message.sender === "user";
                 return (
                   <Message
                     key={message.id || i}
-                    from={isUser ? "user" : "assistant"}
-                  >
+                    from={isUser ? "user" : "assistant"}>
                     <MessageContent
                       className={
                         !isUser
@@ -70,7 +76,10 @@ function RightSidebar() {
                     </MessageContent>
 
                     {!isUser && (
-                      <MessageAvatar src="/logo.png" name="TalkGyan" />
+                      <MessageAvatar
+                        src="/logo.png"
+                        name="TalkGyan"
+                      />
                     )}
                   </Message>
                 );
