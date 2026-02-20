@@ -1,3 +1,9 @@
+import {
+  AVAILABLE_LANGUAGES,
+  AVAILABLE_PROFICIENCY_LEVELS,
+  AVAILABLE_TOPICS,
+  AVAILABLE_VOICES,
+} from "@/lib/constants";
 import { LiveManager } from "@/services/liveManager";
 import { ConnectionState, TranscriptItem } from "@/types";
 import { create } from "zustand";
@@ -9,6 +15,17 @@ type AudioStore = {
   isMuted: boolean;
   liveManagerInstance: LiveManager;
   transcript: TranscriptItem[];
+
+  selectedLanguage: string;
+  selectedProficiencyLevel: string;
+  selectedTopic: string;
+  selectedAssistantVoice: string;
+
+  setSelectedLanguage: (lang: string) => void;
+  setSelectedProficiencyLevel: (prof: string) => void;
+  setSelectedTopic: (topic: string) => void;
+  setSelectedAssistantvoice: (voice: string) => void;
+
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   toggleMute: () => void;
@@ -21,6 +38,26 @@ export const useAudioStore = create<AudioStore>()(
     error: null,
     isMuted: false,
     transcript: [],
+
+    selectedLanguage: AVAILABLE_LANGUAGES[0].code,
+    selectedProficiencyLevel:
+      AVAILABLE_PROFICIENCY_LEVELS[0].label,
+    selectedTopic: AVAILABLE_TOPICS[0],
+    selectedAssistantVoice: AVAILABLE_VOICES[0].name,
+
+    setSelectedLanguage: (lang: string) => {
+      set({ selectedLanguage: lang });
+    },
+    setSelectedProficiencyLevel: (prof: string) => {
+      set({ selectedProficiencyLevel: prof });
+    },
+    setSelectedTopic: (topic: string) => {
+      set({ selectedTopic: topic });
+    },
+    setSelectedAssistantvoice: (voice: string) => {
+      set({ selectedAssistantVoice: voice });
+    },
+
     toggleMute: () => {
       const state = get();
       const newState = !state.isMuted;
@@ -96,8 +133,24 @@ export const useAudioStore = create<AudioStore>()(
         set({ liveManagerInstance: manager });
       }
 
+      const selectedLang = AVAILABLE_LANGUAGES.find(
+        (l) => l.code === state.selectedLanguage,
+      );
       // create session
-      manager.startSession();
+      manager.startSession({
+        selected_assistant_voice:
+          state.selectedAssistantVoice,
+        selected_launguage_code:
+          selectedLang?.code || "en-US",
+        selected_launguage_name:
+          selectedLang?.name || "English",
+        selected_launguage_region:
+          selectedLang?.region || "US",
+        description: state.selectedTopic,
+        selected_topic: state.selectedTopic,
+        selected_proefficent_level:
+          state.selectedProficiencyLevel,
+      });
     },
     disconnect: async () => {
       const state = get();
