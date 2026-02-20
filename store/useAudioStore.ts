@@ -67,6 +67,14 @@ export const useAudioStore = create<AudioStore>()(
     connect: async () => {
       const state = get();
 
+      // get ephemeral token
+      const response = await fetch("/api/token");
+      if (!response.ok) {
+        set({ error: "failed to generate token" });
+      }
+
+      const { token } = await response.json();
+
       if (
         state.conectionState ===
           ConnectionState.CONNECTING ||
@@ -89,46 +97,50 @@ export const useAudioStore = create<AudioStore>()(
       // create live manager (singleton)
       let manager = state.liveManagerInstance;
       if (!manager) {
-        // @ts-ignore
-        manager = new LiveManager({
-          onStateChange: (state) =>
-            set({ conectionState: state }),
-          onError: (err) => set({ error: err }),
-          onTranscript: (sender, text, isPartial) => {
-            return set((state) => {
-              const newTranscript = [...state.transcript];
+        manager = new LiveManager(
+          {
+            onStateChange: (state) =>
+              set({ conectionState: state }),
+            onError: (err) => set({ error: err }),
+            onTranscript: (sender, text, isPartial) => {
+              return set((state) => {
+                const newTranscript = [...state.transcript];
 
-              const existingIndex =
-                newTranscript.findLastIndex((item) => {
-                  return (
-                    item.sender === sender && item.isPartial
-                  );
-                });
+                const existingIndex =
+                  newTranscript.findLastIndex((item) => {
+                    return (
+                      item.sender === sender &&
+                      item.isPartial
+                    );
+                  });
 
-              // partial message exists
-              if (existingIndex !== -1) {
-                newTranscript[existingIndex] = {
-                  ...newTranscript[existingIndex],
-                  text,
-                  isPartial,
-                };
-
-                return { transcript: newTranscript };
-              } else {
-                if (text) {
-                  newTranscript.push({
-                    id: crypto.randomUUID(),
-                    sender,
+                // partial message exists
+                if (existingIndex !== -1) {
+                  newTranscript[existingIndex] = {
+                    ...newTranscript[existingIndex],
                     text,
                     isPartial,
-                  });
-                }
+                  };
 
-                return { transcript: newTranscript };
-              }
-            });
+                  return { transcript: newTranscript };
+                } else {
+                  if (text) {
+                    newTranscript.push({
+                      id: crypto.randomUUID(),
+                      sender,
+                      text,
+                      isPartial,
+                    });
+                  }
+
+                  return { transcript: newTranscript };
+                }
+              });
+            },
+            onAudioLevel: () => {},
           },
-        });
+          token.name,
+        );
 
         set({ liveManagerInstance: manager });
       }
