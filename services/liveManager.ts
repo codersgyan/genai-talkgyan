@@ -34,6 +34,7 @@ export class LiveManager {
   private nextStartTime = 0;
   private sources = new Set<AudioBufferSourceNode>();
   private callbacks: LiveManagerCallbacks;
+  // todo: explore where to use: hint - in session connect
   private isMuted: boolean;
 
   private inputTranscription = "";
@@ -93,6 +94,7 @@ export class LiveManager {
             );
             this.callbacks.onError("Could not connect.");
           },
+          // todo: handle this -> destroy strems, ...
           onclose: (e) => console.log("Closed:", e.reason),
         },
       });
